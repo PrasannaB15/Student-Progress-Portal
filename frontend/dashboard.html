@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f6f9;
+      color: #333;
+    }
+
+    .navbar {
+      background-color: #0b132b;
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .navbar h1 {
+      font-size: 1.5rem;
+    }
+
+    .navbar button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .dashboard {
+      padding: 2rem;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .dashboard h2 {
+      color: #0b132b;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      justify-content: center;
+      margin-bottom: 3rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem 2rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      flex: 1 1 250px;
+    }
+
+    .card i {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      color: #0b132b;
+    }
+
+    /* Container for the two charts side by side */
+    .charts-row {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 3rem;
+    }
+
+    .chart-container {
+      background: white;
+      padding: 1rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      flex: 1 1 400px;
+      max-width: 600px;
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 300px !important;
+    }
+
+    /* Line chart full width below */
+    .line-chart-container {
+      background: white;
+      padding: 1rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      max-width: 1200px;
+      margin: auto;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 900px) {
+      .charts-row {
+        flex-direction: column;
+        align-items: center;
+      }
+      .chart-container {
+        max-width: 90vw;
+      }
+    }
+
+  /* Reuse the existing theme colors */
+  :root {
+    --primary-dark: #1c2541;
+    --primary-mid: #3a506b;
+    --primary-light: #5bc0be;
+  }
+
+  .dashboard {
+    animation: fadeIn 1s ease-in;
+  }
+
+  .card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  .navbar {
+    background-color: var(--primary-dark);
+  }
+
+  .navbar h1 {
+    color: var(--primary-light);
+  }
+
+  .navbar button:hover {
+    text-decoration: underline;
+  }
+
+  .dashboard h2 {
+    color: var(--primary-dark);
+    font-size: 2rem;
+    animation: slideInDown 1s ease;
+  }
+
+  .card h3 {
+    color: var(--primary-mid);
+  }
+
+  .chart-container h3,
+  .line-chart-container h3 {
+    color: var(--primary-dark);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slideInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  </style>
+</head>
+<body>
+ <div class="navbar">
+  <h1>Student Dashboard</h1>
+  <div>
+    <button onclick="goToProfile()"><i class="fas fa-user"></i> Profile</button>
+    <button onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+  </div>
+</div>
+
+
+  <div class="dashboard">
+    <h2>Welcome, <span id="studentName">Student</span></h2>
+
+    <div class="cards">
+      <div class="card">
+        <i class="fas fa-book-open"></i>
+        <h3>Subjects</h3>
+        <p>6</p>
+      </div>
+      <div class="card">
+        <i class="fas fa-check-circle"></i>
+        <h3>Completed Assignments</h3>
+        <p>12</p>
+      </div>
+      <div class="card">
+        <i class="fas fa-user-clock"></i>
+        <h3>Attendance</h3>
+        <p>92%</p>
+      </div>
+    </div>
+
+    <div class="charts-row">
+      <div class="chart-container">
+        <h3 style="text-align:center; color:#0b132b;">Performance Overview (Bar)</h3>
+        <canvas id="barChart"></canvas>
+      </div>
+      <div class="chart-container">
+        <h3 style="text-align:center; color:#0b132b;">Attendance Overview (Pie)</h3>
+        <canvas id="pieChart"></canvas>
+      </div>
+    </div>
+
+    <div class="line-chart-container">
+      <h3 style="text-align:center; color:#0b132b;">Progress Trend (Line)</h3>
+      <canvas id="lineChart"></canvas>
+    </div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem("token");
+
+if (!token) {
+  window.location.href = "login.html";
+}
+
+fetch("http://localhost:5000/api/auth/me", {
+  method: "GET",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  },
+})
+
+
+  .then((res) => {
+    if (!res.ok) throw new Error("Unauthorized");
+    return res.json();
+  })
+  .then((data) => {
+    console.log("📦 Dashboard data from backend:", data);
+    document.getElementById("studentName").textContent = data.name || "Student";
+
+    // Optional: update cards/charts here using data
+  })
+  .catch((err) => {
+    console.error("❌ Failed to fetch dashboard data:", err);
+    logout();
+  });
+
+    function logout() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "login.html";
+    }
+
+    const subjects = ['Math', 'Science', 'English', 'History', 'Computers', 'Art'];
+    const marks = [85, 90, 78, 88, 92, 75];
+
+    new Chart(document.getElementById('barChart').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: subjects,
+        datasets: [{
+          label: 'Marks (%)',
+          data: marks,
+          backgroundColor: '#3a506b'
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100
+          }
+        }
+      }
+    });
+
+    new Chart(document.getElementById('pieChart').getContext('2d'), {
+      type: 'pie',
+      data: {
+        labels: ['Present', 'Absent'],
+        datasets: [{
+          data: [92, 8],
+          backgroundColor: ['#5bc0be', '#fa8072']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false
+      }
+    });
+
+    new Chart(document.getElementById('lineChart').getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        datasets: [{
+          label: 'Average Performance (%)',
+          data: [80, 85, 88, 90],
+          borderColor: '#1c2541',
+          backgroundColor: 'rgba(28, 37, 65, 0.2)',
+          fill: true,
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true
+      }
+    });
+    function goToProfile() {
+  window.location.href = "profile.html";
+}
+
+  </script>
+</body>
+</html>

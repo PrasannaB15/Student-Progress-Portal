@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Advanced User Profile | Student Portal</title>
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
+
+  <style>
+    /* Reset & base */
+    * {
+      box-sizing: border-box;
+    }
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f6f9;
+      height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Side panel */
+    .side-panel {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 260px;
+      background: #0b132b;
+      color: white;
+      padding: 2rem 1.5rem;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+      z-index: 9999;
+      animation: slideInLeft 0.6s ease forwards;
+    }
+
+    .side-panel h2 {
+      margin: 0;
+      font-weight: 900;
+      font-size: 1.7rem;
+      color: #3a506b;
+      user-select: none;
+    }
+
+    /* Side panel nav improved */
+    .side-panel nav {
+      width: 100%;
+    }
+    .side-panel nav a {
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      margin: 0.8rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.7rem 1rem;
+      border-radius: 12px;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      user-select: none;
+      font-size: 1.05rem;
+      box-shadow: inset 0 0 0 transparent;
+    }
+    .side-panel nav a i {
+      font-size: 1.25rem;
+      transition: transform 0.3s ease;
+    }
+    .side-panel nav a:hover,
+    .side-panel nav a.active {
+      background-color: #3a506b;
+      box-shadow: 0 0 10px #3a506bcc;
+      font-weight: 700;
+    }
+    .side-panel nav a:hover i,
+    .side-panel nav a.active i {
+      transform: scale(1.3);
+    }
+
+    /* Main content */
+    .main-content {
+      margin-left: 260px; /* same as side panel width */
+      padding: 2.5rem 3rem;
+      height: 100vh;
+      overflow-y: auto;
+      background-color: #f4f6f9;
+      display: flex;
+      gap: 2rem;
+      animation: fadeIn 0.8s ease forwards;
+      align-items: flex-start; /* top align */
+    }
+
+    /* Profile card */
+    .profile-panel {
+      flex: 0 0 72%;
+      background: white;
+      border-radius: 20px;
+      padding: 2.5rem 3.5rem;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15),
+        0 5px 15px rgba(0, 0, 0, 0.07);
+      display: flex;
+      flex-direction: column;
+      animation: popIn 0.7s ease forwards;
+      min-height: 600px; /* fixed height for matching with right panel */
+    }
+
+    .profile-panel h2 {
+      color: #0b132b;
+      margin-bottom: 1.8rem;
+      font-weight: 700;
+      font-size: 2rem;
+      text-align: center;
+      user-select: none;
+    }
+
+    /* Profile picture */
+    .profile-picture {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 4px solid #1c2541;
+      box-shadow: 0 0 20px #3a506baa;
+      cursor: pointer;
+      transition: box-shadow 0.3s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0 auto 2rem;
+      position: relative;
+    }
+    .profile-picture:hover {
+      box-shadow: 0 0 30px #5bc0beff;
+    }
+    .profile-picture img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+      display: block;
+    }
+    /* Upload icon overlay */
+    .upload-icon {
+      position: absolute;
+      bottom: 6px;
+      right: 6px;
+      background-color: #1c2541cc;
+      border-radius: 50%;
+      padding: 0.3rem;
+      color: white;
+      font-size: 1.2rem;
+      display: none;
+      user-select: none;
+      pointer-events: none;
+    }
+    .profile-picture:hover .upload-icon {
+      display: block;
+    }
+
+    /* Form grid */
+    form.profile-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem 2.5rem;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      color: #0b132b;
+      margin-bottom: 0.5rem;
+      user-select: none;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="date"],
+    input[type="tel"] {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1.8px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      font-family: "Segoe UI", sans-serif;
+    }
+    input:focus {
+      border-color: #1c2541;
+      box-shadow: 0 0 8px #3a506baa;
+      outline: none;
+    }
+    input:disabled {
+      background-color: #e9ecef;
+      color: #777;
+    }
+
+    /* Buttons below form */
+    .button-group {
+      margin-top: 2.5rem;
+      text-align: center;
+    }
+    button.btn {
+      background-color: #1c2541;
+      color: white;
+      font-weight: 700;
+      border: none;
+      padding: 0.85rem 2.5rem;
+      font-size: 1.1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin: 0 0.8rem;
+      user-select: none;
+      box-shadow: 0 4px 10px #3a506b88;
+    }
+    button.btn:hover {
+      background-color: #3a506b;
+      box-shadow: 0 6px 14px #5bc0becc;
+    }
+    button.btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .btn.save-btn {
+      background-color: #2d7a2d;
+      margin-left: 0.8rem;
+    }
+    .btn.cancel-btn {
+      background-color: #d93025;
+      margin-left: 0.8rem;
+    }
+    .btn.save-btn:hover {
+      background-color: #1e4f1e;
+    }
+    .btn.cancel-btn:hover {
+      background-color: #a3241b;
+    }
+
+    .message {
+      text-align: center;
+      margin-top: 1.2rem;
+      font-weight: 700;
+      color: #2d7a2d;
+      user-select: none;
+      min-height: 1.5rem;
+      font-size: 1rem;
+    }
+
+    /* Right panel container to stack highlights and new card */
+    .right-panel {
+      flex: 0 0 28%;
+      display: flex;
+      flex-direction: column;
+      gap: 1.8rem;
+      min-height: 600px; /* same height as profile panel */
+      animation: slideInRight 0.7s ease forwards;
+    }
+
+    /* Profile highlights panel */
+    .profile-highlights {
+      background: linear-gradient(145deg, #5bc0be, #3a506b);
+      border-radius: 15px;
+      padding: 2rem 1.8rem;
+      color: white;
+      box-shadow: 0 8px 25px rgba(91, 192, 190, 0.5);
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      flex: 1 1 auto;
+      min-height: 280px;
+    }
+    .profile-highlights h3 {
+      margin: 0 0 1.5rem 0;
+      font-weight: 900;
+      font-size: 1.8rem;
+      text-align: center;
+      letter-spacing: 1.2px;
+      text-shadow: 1px 1px 8px rgba(0, 0, 0, 0.3);
+    }
+    .profile-highlights .highlight {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1.4rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 2px solid rgba(255 255 255 / 0.3);
+      transition: background-color 0.3s ease;
+      cursor: default;
+    }
+    .profile-highlights .highlight:last-child {
+      margin-bottom: 0;
+      border-bottom: none;
+    }
+    .profile-highlights .highlight:hover {
+      background-color: rgba(255 255 255 / 0.15);
+      border-radius: 8px;
+      box-shadow: 0 0 12px rgba(255 255 255 / 0.3);
+    }
+    .profile-highlights .highlight i {
+      margin-right: 0.7rem;
+      font-size: 1.3rem;
+      color: #e0f7f7;
+      flex-shrink: 0;
+      user-select: none;
+    }
+    .profile-highlights .highlight span {
+      flex-grow: 1;
+      text-align: right;
+      letter-spacing: 0.3px;
+    }
+
+    /* New additional card below profile highlights */
+    .additional-card {
+      background: white;
+      border-radius: 15px;
+      padding: 2rem 2.2rem;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      user-select: none;
+      flex: 1 1 auto;
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
+    }
+    .additional-card h3 {
+      margin: 0 0 1rem 0;
+      font-weight: 900;
+      font-size: 1.8rem;
+      color: #0b132b;
+      text-align: center;
+      letter-spacing: 1.2px;
+      user-select: none;
+    }
+    .additional-card p {
+      font-size: 1.05rem;
+      color: #3a506b;
+      flex-grow: 1;
+      line-height: 1.4;
+      user-select: text;
+      overflow-y: auto;
+    }
+
+    /* Animations */
+    @keyframes popIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.85);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .main-content {
+        flex-direction: column;
+        margin-left: 0;
+        padding: 1.5rem 2rem;
+        height: auto;
+      }
+      .profile-panel,
+      .right-panel {
+        flex: 1 1 100%;
+        max-width: 100%;
+      }
+      .side-panel {
+        position: relative;
+        width: 100%;
+        height: auto;
+        flex-direction: row;
+        padding: 1rem 1.5rem;
+        justify-content: space-between;
+        box-shadow: none;
+      }
+      .side-panel nav {
+        display: flex;
+        gap: 1rem;
+      }
+      .side-panel nav a {
+        padding: 0.3rem 0.8rem;
+        font-size: 0.9rem;
+      }
+      .profile-picture {
+        width: 110px;
+        height: 110px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Side navigation panel -->
+  <aside class="side-panel">
+    <h2>Student Portal</h2>
+    <nav>
+      <a href="dashboard.html" class="active"
+        ><i class="fas fa-tachometer-alt"></i> Dashboard</a
+      >
+      <a href="profile.html"
+        ><i class="fas fa-user"></i> Profile</a
+      >
+      <a href="assignments.html"
+        ><i class="fas fa-book"></i> Assignments</a
+      >
+      <a href="attendance.html"
+        ><i class="fas fa-user-check"></i> Attendance</a
+      >
+      <a href="settings.html"
+        ><i class="fas fa-cog"></i> Settings</a
+      >
+      <a href="#" onclick="logout()"
+        ><i class="fas fa-sign-out-alt"></i> Logout</a
+      >
+    </nav>
+  </aside>
+
+  <!-- Main content: profile form + profile highlights + additional card -->
+  <main
+    class="main-content"
+    role="main"
+    aria-label="User Profile and Highlights"
+  >
+    <section class="profile-panel" aria-labelledby="profileHeading">
+      <h2 id="profileHeading">Your Profile</h2>
+
+      <div
+        class="profile-picture"
+        tabindex="0"
+        role="button"
+        aria-label="Change profile picture"
+        onclick="document.getElementById('profileImageInput').click()"
+        onkeypress="if(event.key==='Enter')document.getElementById('profileImageInput').click()"
+      >
+        <img
+          src="https://via.placeholder.com/140"
+          alt="Profile Picture"
+          id="profileImage"
+        />
+        <i class="fas fa-camera upload-icon"></i>
+        <input
+          type="file"
+          id="profileImageInput"
+          accept="image/*"
+          style="display: none"
+        />
+      </div>
+
+      <form class="profile-form" id="profileForm" novalidate>
+        <div>
+          <label for="email">Email</label>
+          <input type="email" id="email" disabled aria-readonly="true" />
+        </div>
+        <div>
+          <label for="name">Full Name</label>
+          <input type="text" id="name" disabled />
+        </div>
+        <div>
+          <label for="phone">Phone Number</label>
+          <input type="tel" id="phone" disabled />
+        </div>
+        <div>
+          <label for="surName">Surname</label>
+          <input type="text" id="surName" disabled />
+        </div>
+        <div>
+          <label for="dob">Date of Birth</label>
+          <input type="date" id="dob" disabled />
+        </div>
+        <div>
+          <label for="address">Address</label>
+          <input type="text" id="address" disabled />
+        </div>
+        <div>
+          <label for="department">Department</label>
+          <input type="text" id="department" disabled />
+        </div>
+        <div>
+          <label for="rollNumber">Roll Number</label>
+          <input type="text" id="rollNumber" disabled />
+        </div>
+      </form>
+
+      <div class="button-group">
+        <button class="btn edit-btn" id="editBtn" aria-label="Edit profile">
+          Edit
+        </button>
+        <button
+          class="btn save-btn"
+          id="saveBtn"
+          aria-label="Save profile"
+          style="display: none"
+        >
+          Save
+        </button>
+        <button
+          class="btn cancel-btn"
+          id="cancelBtn"
+          aria-label="Cancel editing profile"
+          style="display: none"
+        >
+          Cancel
+        </button>
+      </div>
+
+      <p class="message" id="message" role="alert" aria-live="polite"></p>
+    </section>
+
+    <div class="right-panel" aria-label="Highlights and Announcements">
+      <aside class="profile-highlights" aria-label="Profile Highlights and Summary">
+        <h3>Profile Highlights</h3>
+        <div class="highlight" title="Total assignments completed">
+          <i class="fas fa-book-open"></i>
+          <span>Assignments Completed</span>
+          <span id="assignmentsCompleted">12</span>
+        </div>
+        <div class="highlight" title="Attendance percentage">
+          <i class="fas fa-check-circle"></i>
+          <span>Attendance</span>
+          <span id="attendancePercent">92%</span>
+        </div>
+        <div class="highlight" title="Current GPA">
+          <i class="fas fa-star"></i>
+          <span>GPA</span>
+          <span id="gpa">3.8</span>
+        </div>
+        <div class="highlight" title="New notifications">
+          <i class="fas fa-bell"></i>
+          <span>Notifications</span>
+          <span id="notificationsCount">3</span>
+        </div>
+      </aside>
+
+      <section class="additional-card" aria-label="Announcements and Updates">
+        <h3>Announcements</h3>
+        <p>
+          No new announcements at this time. Please check back later for updates
+          from your department and administration. Stay tuned for upcoming events
+          and important deadlines.
+        </p>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    // Dummy user data from localStorage or fallback defaults
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+    // Fields to manage
+    const fields = [
+      "email",
+      "name",
+      "phone",
+      "surName",
+      "dob",
+      "address",
+      "department",
+      "rollNumber",
+    ];
+
+    function populateProfile() {
+      fields.forEach((id) => {
+        document.getElementById(id).value = user[id] || "";
+      });
+      // Profile image (fallback)
+      document.getElementById("profileImage").src =
+        user.profileImage || "https://via.placeholder.com/140";
+      // Profile highlights
+      document.getElementById("assignmentsCompleted").textContent =
+        user.assignmentsCompleted || "12";
+      document.getElementById("attendancePercent").textContent =
+        (user.attendancePercent || 92) + "%";
+      document.getElementById("gpa").textContent = user.gpa || "3.8";
+      document.getElementById("notificationsCount").textContent =
+        user.notificationsCount || "3";
+    }
+
+    const editBtn = document.getElementById("editBtn");
+    const saveBtn = document.getElementById("saveBtn");
+    const cancelBtn = document.getElementById("cancelBtn");
+    const message = document.getElementById("message");
+
+    function enableEdit() {
+      fields.forEach((id) => {
+        if (id !== "email") {
+          document.getElementById(id).disabled = false;
+        }
+      });
+      editBtn.style.display = "none";
+      saveBtn.style.display = "inline-block";
+      cancelBtn.style.display = "inline-block";
+      message.textContent = "";
+    }
+
+    function cancelEdit() {
+      populateProfile();
+      fields.forEach((id) => {
+        document.getElementById(id).disabled = true;
+      });
+      editBtn.style.display = "inline-block";
+      saveBtn.style.display = "none";
+      cancelBtn.style.display = "none";
+      message.textContent = "";
+    }
+
+    function saveProfile() {
+      // Simple validation example
+      let valid = true;
+      fields.forEach((id) => {
+        if (id !== "email") {
+          const el = document.getElementById(id);
+          if (!el.value.trim()) {
+            valid = false;
+            el.focus();
+          }
+        }
+      });
+
+      if (!valid) {
+        message.style.color = "#d93025";
+        message.textContent = "Please fill out all fields before saving.";
+        return;
+      }
+
+      // Save new data to user and localStorage
+      fields.forEach((id) => {
+        user[id] = document.getElementById(id).value.trim();
+      });
+
+      localStorage.setItem("user", JSON.stringify(user));
+
+      fields.forEach((id) => {
+        document.getElementById(id).disabled = true;
+      });
+
+      editBtn.style.display = "inline-block";
+      saveBtn.style.display = "none";
+      cancelBtn.style.display = "none";
+
+      message.style.color = "#2d7a2d";
+      message.textContent = "Profile saved successfully!";
+    }
+
+    // Profile picture upload preview
+    const profileImageInput = document.getElementById("profileImageInput");
+    profileImageInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (ev) {
+          document.getElementById("profileImage").src = ev.target.result;
+          user.profileImage = ev.target.result;
+          localStorage.setItem("user", JSON.stringify(user));
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    editBtn.addEventListener("click", enableEdit);
+    cancelBtn.addEventListener("click", cancelEdit);
+    saveBtn.addEventListener("click", saveProfile);
+
+    // Populate form on load
+    populateProfile();
+
+    // Dummy logout function
+    function logout() {
+      alert("Logout clicked. Implement your logout logic here.");
+    }
+  </script>
+</body>
+</html>
